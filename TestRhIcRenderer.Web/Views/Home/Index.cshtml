@@ -1,0 +1,99 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<link type="text/css" rel="stylesheet" href="/Content/syntaxhighlighter/styles/shCoreDefault.min.css" />
+<link type="text/css" rel="stylesheet" href="/Content/syntaxhighlighter/styles/shThemejqPlot.min.css" />
+<link rel="stylesheet" type="text/css" href="/Content/examples.min.css" />
+
+<script src="../../Scripts/jqPlot/plugins/jqplot.barRenderer.min.js" type="text/javascript"></script>
+<script src="../../Scripts/jqPlot/plugins/jqplot.categoryAxisRenderer.min.js" type="text/javascript"></script>
+<script src="/Scripts/jqPlot/plugins/jqplot.dateAxisRenderer.min.js"></script>
+<script src="/Scripts/jqPlot/plugins/jqplot.ohlcRenderer.min.js"></script>
+<script src="/Scripts/jqPlot/plugins/jqplot.highlighter.min.js"></script>
+
+<div id="chartdiv" style="height: 400px;"></div>
+<div id="chart1" style="margin-left:50px; height: 250px; width: 600px;"></div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        var url = '@Url.Action("FetchGraphData", "Home")';
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function (result) {
+                testJqPlot(result.stats, result.days);
+            },
+            error: function () {
+            }
+        });
+        function testJqPlot(stats, days) {
+
+            $.jqplot('chartdiv', [stats], {
+                seriesDefaults: {
+                    renderer: $.jqplot.BarRenderer,
+                    rendererOptions: { fillToZero: true }
+                },
+                axes: {
+                    xaxis: {
+                        renderer: $.jqplot.CategoryAxisRenderer,
+                        ticks: days
+                    },
+                    yaxis: {
+                        pad: 1.05,
+                        tickOptions: { formatString: '$%d' }
+                    }
+                }
+            });
+        } // end of TestJqPlot  
+
+        url = '@Url.Action("FetchGraphDataOHLC", "Home")';
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function(result) {
+                testJqPlotOHLC(JSON.stringify(result));
+            },
+            error: function() {
+            }
+        });
+
+        function testJqPlotOHLC(result) {
+            $.jqplot('chart1', [result], {
+                seriesDefaults: { yaxis: 'y2axis' },
+                axes: {
+                    xaxis: {
+                        renderer: $.jqplot.DateAxisRenderer,
+                        tickOptions: { formatString: '%b %e' },
+                        min: "09-01-2008 16:00",
+                        max: "06-22-2009 16:00",
+                        tickInterval: "5 weeks"
+                    },
+                    y2axis: {
+                        tickOptions: { formatString: '$%d' }
+                    }
+                },
+                series: [{ renderer: $.jqplot.OHLCRenderer }],
+                highlighter: {
+                    show: true,
+                    showMarker: false,
+                    tooltipAxes: 'xy',
+                    yvalues: 4,
+                    // You can customize the tooltip format string of the highlighter
+                    // to include any arbitrary text or html and use format string
+                    // placeholders (%s here) to represent x and y values.
+                    formatString: '<table class="jqplot-highlighter"> \
+      <tr><td>date:</td><td>%s</td></tr> \
+      <tr><td>open:</td><td>%s</td></tr> \
+      <tr><td>hi:</td><td>%s</td></tr> \
+      <tr><td>low:</td><td>%s</td></tr> \
+      <tr><td>close:</td><td>%s</td></tr></table>'
+                }
+            });
+        }
+        
+
+    });
+</script>
